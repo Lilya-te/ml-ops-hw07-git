@@ -13,4 +13,4 @@ jobs:
       - name: Install dependencies
         run: pip install scikit-learn numpy pandas
       - name: Run pipeline
-        run: python ml-ops-hw07-git/ml_pipeline.py
+        run: python ml_pipeline.py
