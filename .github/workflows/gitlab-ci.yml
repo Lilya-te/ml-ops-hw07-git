@@ -1,0 +1,16 @@
+name: Gitea Actions Demo
+run-name: testing out Gitea Actions 🚀
+on: [push]
+
+jobs:
+  Explore-Gitea-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install scikit-learn numpy pandas
+      - name: Run pipeline
+        run: python ml-ops-hw07-git/ml_pipeline.py
