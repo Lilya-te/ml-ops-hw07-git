@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  ml-blue:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: python -m http.server 8000
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000', timeout=2)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  ml-green:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: python -m http.server 8000
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000', timeout=2)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  router:
+    image: nginx:alpine
+    depends_on:
+      ml-blue:
+        condition: service_healthy
+      ml-green:
+        condition: service_healthy
+    environment:
+      ACTIVE_COLOR: ${ACTIVE_COLOR:-blue}
+    ports:
+      - "8000:80"
+    command: >
+      /bin/sh -c "
+      cat > /etc/nginx/conf.d/default.conf <<EOF
+      server {
+        listen 80;
+        location / {
+          proxy_pass http://ml-$${ACTIVE_COLOR}:8000;
+          proxy_set_header Host $$host;
+          proxy_set_header X-Real-IP $$remote_addr;
+          proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+        }
+      }
+      EOF
+      && nginx -g 'daemon off;'
+      "
